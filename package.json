@@ -4,8 +4,12 @@
   "description": "Get Aliexpress product details as a json reponse including feedbacks, variants, description, images, etc.,",
   "main": "index.js",
   "type": "module",
+  "bin": {
+    "aliexpress-mcp": "mcp.js"
+  },
   "files": [
     "index.js",
+    "mcp.js",
     "src",
     "README.md",
     "LICENSE"
@@ -49,6 +53,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "10.3.0",
+    "@modelcontextprotocol/sdk": "1.29.0",
     "cheerio": "1.2.0",
     "node-fetch": "3.3.2",
     "puppeteer": "24.37.5",
