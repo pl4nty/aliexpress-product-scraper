@@ -20,7 +20,7 @@ const AliexpressProductScraper = async (
 
   let browser;
   // Connect to a remote CDP browser when the env var is set; otherwise launch locally
-  const browserWSEndpoint = process.env.PUPPETEER_BROWSERWS_ENDPOINT;
+  const browserWSEndpoint = process.env.BROWSER_WS_ENDPOINT;
 
   try {
     const REVIEWS_COUNT = reviewsCount || 20;

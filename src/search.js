@@ -24,7 +24,7 @@ const AliexpressSearch = async (
 
   let browser;
   // Connect to a remote CDP browser when the env var is set; otherwise launch locally
-  const browserWSEndpoint = process.env.PUPPETEER_BROWSERWS_ENDPOINT;
+  const browserWSEndpoint = process.env.BROWSER_WS_ENDPOINT;
 
   try {
     browser = browserWSEndpoint
@@ -43,7 +43,11 @@ const AliexpressSearch = async (
     });
 
     // Wait for search result cards to appear
-    await page.waitForSelector("[class*='search-item-card']", { timeout: 15000 }).catch(() => {});
+    await page
+      .waitForSelector("[class*='search-item-card']", { timeout: 15000 })
+      .catch(() => {
+        console.warn("Search result card selector not found; proceeding with page.evaluate");
+      });
 
     const results = await page.evaluate((maxResults) => {
       const items = [];
@@ -132,16 +136,12 @@ const AliexpressSearch = async (
       return items;
     }, limit);
 
-    // Only close the browser when we launched it ourselves
-    if (!browserWSEndpoint) {
-      await browser.close();
-    }
     return results;
-  } catch (error) {
+  } finally {
+    // Only close the browser when we launched it ourselves
     if (browser && !browserWSEndpoint) {
       await browser.close();
     }
-    throw error;
   }
 };
 
