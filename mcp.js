@@ -4,6 +4,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 
 import AliexpressProductScraper from "./src/aliexpressProductScraper.js";
+import AliexpressSearch from "./src/search.js";
 
 const server = new McpServer({
   name: "aliexpress-product-scraper",
@@ -33,6 +34,27 @@ server.tool(
         {
           type: "text",
           text: JSON.stringify(data, null, 2),
+        },
+      ],
+    };
+  }
+);
+
+server.tool(
+  "search_products",
+  "Search AliExpress for products matching a query",
+  {
+    query: z.string().describe("Search terms"),
+    limit: z.number().int().min(1).default(20).describe("Maximum number of results to return"),
+    timeout: z.number().int().min(0).default(60000).describe("Page navigation timeout in ms"),
+  },
+  async ({ query, limit, timeout }) => {
+    const results = await AliexpressSearch(query, { limit, timeout });
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(results, null, 2),
         },
       ],
     };
