@@ -23,12 +23,16 @@ const AliexpressSearch = async (
   }
 
   let browser;
+  // Connect to a remote CDP browser when the env var is set; otherwise launch locally
+  const browserWSEndpoint = process.env.PUPPETEER_BROWSERWS_ENDPOINT;
 
   try {
-    browser = await puppeteer.launch({
-      headless: true,
-      ...(puppeteerOptions || {}),
-    });
+    browser = browserWSEndpoint
+      ? await puppeteer.connect({ browserWSEndpoint })
+      : await puppeteer.launch({
+        headless: true,
+        ...puppeteerOptions,
+      });
 
     const page = await browser.newPage();
     const searchUrl = `https://www.aliexpress.com/w/wholesale-${encodeURIComponent(query.trim())}.html`;
@@ -128,10 +132,13 @@ const AliexpressSearch = async (
       return items;
     }, limit);
 
-    await browser.close();
+    // Only close the browser when we launched it ourselves
+    if (!browserWSEndpoint) {
+      await browser.close();
+    }
     return results;
   } catch (error) {
-    if (browser) {
+    if (browser && !browserWSEndpoint) {
       await browser.close();
     }
     throw error;

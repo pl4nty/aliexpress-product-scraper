@@ -19,13 +19,17 @@ const AliexpressProductScraper = async (
   }
 
   let browser;
+  // Connect to a remote CDP browser when the env var is set; otherwise launch locally
+  const browserWSEndpoint = process.env.PUPPETEER_BROWSERWS_ENDPOINT;
 
   try {
     const REVIEWS_COUNT = reviewsCount || 20;
-    browser = await puppeteer.launch({
-      headless: true,
-      ...(puppeteerOptions || {}),
-    });
+    browser = browserWSEndpoint
+      ? await puppeteer.connect({ browserWSEndpoint })
+      : await puppeteer.launch({
+        headless: true,
+        ...puppeteerOptions,
+      });
     const page = await browser.newPage();
 
     // Set up response interception to capture the product data API
@@ -118,12 +122,15 @@ const AliexpressProductScraper = async (
       reviewsPromise,
     ]);
 
-    await browser.close();
+    // Only close the browser when we launched it ourselves
+    if (!browserWSEndpoint) {
+      await browser.close();
+    }
 
     return buildProductJson({ data, descriptionData, reviews });
   } catch (error) {
     console.error(error);
-    if (browser) {
+    if (browser && !browserWSEndpoint) {
       await browser.close();
     }
     throw error;
